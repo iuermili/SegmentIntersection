@@ -1,5 +1,5 @@
-import java.util.LinkedList;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.function.BiPredicate;
 
 /**
@@ -35,7 +35,11 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
          * Constructs a new Node<K> with the given values for fields.
          */
         public Node(K data, Node<K> left, Node<K> right) {
-            // delete this line and add your code
+            this.data = data;
+            this.left = left;
+            this.right = right;
+            this.parent = null;
+            this.updateHeight();
         }
 
         /*
@@ -43,14 +47,14 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
          */
         @Override
         public K get() {
-            return data;
+            return this.data;
         }
 
         /**
          * Return true iff this Node<K> is a leaf in the tree.
          */
         protected boolean isLeaf() {
-            return left == null && right == null;
+            return this.left == null && this.right == null;
         }
 
         /**
@@ -61,7 +65,60 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
          * actually changed. This function *must* run in O(1) time.
          */
         protected boolean updateHeight() {
-            return true;  // delete this line and add your code
+            int newHeight = 1 + Math.max(get_height(this.left), get_height(this.right));
+            if (newHeight != this.height) {
+                this.height = newHeight;
+                return true;
+            }
+            else return false;
+        }
+
+        public void updateHeightOfSelfAndAncestors() {
+            // precondition: this (node) is not null
+            this.updateHeight();
+            if (this.parent != null) {
+                this.parent.updateHeightOfSelfAndAncestors();
+            }
+        }
+
+        // Return the first node wrt. inorder in this subtree.
+        public Location<K> first() {
+            if (this.left == null) {
+                return this;
+            }
+            else return this.left.first();
+        }
+
+        // Return the last node wrt. inorder in this subtree.
+        public Location<K> last() {
+            if (this.right == null) {
+                return this;
+            }
+            else return this.right.last();
+        }
+
+        // Return the first ancestor that is next wrt. inorder
+        // or null if there is none.
+        public Location<K> nextAncestor() {
+            if (this.parent == null) {
+                return null;
+            }
+            else if (this.parent.right == this) {
+                return this.parent.nextAncestor();
+            }
+            else return this.parent;
+        }
+
+        // Return the first ancestor that is previous wrt. inorder
+        // or null if there is none.
+        public Location<K> prevAncestor() {
+            if (this.parent == null) {
+                return null;
+            }
+            else if (this.parent.left == this) {
+                return this.parent.prevAncestor();
+            }
+            else return this.parent;
         }
 
         /**
@@ -72,7 +129,10 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
          */
         @Override
         public Location<K> previous() {
-            return null;  // delete this line and add your code
+            if (this.left != null) {
+                return this.left.last();
+            }
+            else return this.prevAncestor();
         }
 
         /**
@@ -83,7 +143,10 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
          */
         @Override
         public Location<K> next() {
-            return null;  // delete this line and add your code
+            if (this.right != null) {
+                return this.right.first();
+            }
+            else return this.nextAncestor();
         }
 
         public boolean isAVL() {
@@ -96,7 +159,6 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
         public String toString() {
             return toStringPreorder(this);
         }
-
     }
 
     protected Node<K> root;
@@ -111,6 +173,19 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
         this.lessThan = lessThan;
     }
 
+    protected Node<K> find(K key, Node<K> curr, Node<K> parent) {
+        if (curr == null) {
+            return parent;
+        }
+        else if (lessThan.test(key, curr.data)) {
+            return find(key, curr.left, curr);
+        }
+        else if (lessThan.test(curr.data, key)) {
+            return find(key, curr.right, curr);
+        }
+        else return curr;
+    }
+
     /**
      * TODO
      * <p>
@@ -118,7 +193,16 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * location containing the key.
      */
     public Node<K> search(K key) {
-        return null;  // delete this line and add your code
+        Node<K> n = find(key, root, null);
+        if (n == null) {
+            return null;
+        }
+        else if (n.data.equals(key)) {
+            return n;
+        }
+	    else {
+            return null;
+        }
     }
 
     /**
@@ -127,7 +211,7 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * Returns the height of this tree. Runs in O(1) time!
      */
     public int height() {
-        return 0;  // delete this line and add your code
+        return get_height(this.root);
     }
 
     /**
@@ -136,7 +220,8 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * Clears all the keys from this tree. Runs in O(1) time!
      */
     public void clear() {
-        // delete this line and add your code
+        this.root = null;
+        this.numNodes = 0;
     }
 
     /**
@@ -162,7 +247,36 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * Node<K> containing the key), or null if the key is already present.
      */
     public Node<K> insert(K key) {
-        return null;  // delete this line and add your code
+        Node<K> parentNodeToInsertUnder = find(key, this.root, null);
+        if (parentNodeToInsertUnder == null) {
+            this.root = new Node<K>(key, null, null);
+            // the root is the only node in the tree so this isn't needed
+            // also we already updateHeight() in the constructor
+            // this.root.updateHeightOfSelfAndAncestors();
+            ++this.numNodes;
+            return this.root;
+        }
+        else if (lessThan.test(key, parentNodeToInsertUnder.data)) {
+            parentNodeToInsertUnder.left = new Node<K>(key, null, null);
+            // connect new child with parent
+            parentNodeToInsertUnder.left.parent = parentNodeToInsertUnder;
+            // update height of new node and its ancestors
+            parentNodeToInsertUnder.left.updateHeightOfSelfAndAncestors();
+            ++this.numNodes;
+            return parentNodeToInsertUnder.left;
+        }
+        else if (lessThan.test(parentNodeToInsertUnder.data, key)) {
+            parentNodeToInsertUnder.right = new Node<K>(key, null, null);
+            // connect new child with parent
+            parentNodeToInsertUnder.right.parent = parentNodeToInsertUnder;
+            // update height of new node and its ancestors
+            parentNodeToInsertUnder.right.updateHeightOfSelfAndAncestors();
+            ++this.numNodes;
+            return parentNodeToInsertUnder.right;
+        }
+        // key is already present, no need to increment number of nodes
+        // or return a newly added node
+        else return null;
     }
 
     /**
@@ -187,14 +301,56 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * nothing happens.
      */
     public void remove(K key) {
-        // delete this line and add your code
+        root = remove_helper(root, key);
+    }
+
+    private Node remove_helper(Node<K> curr, K key) {
+        if (curr == null) {
+            return null;
+        }
+        else if (lessThan.test(key, curr.data)) { // remove in left subtree
+            curr.left = remove_helper(curr.left, key);
+            return curr;
+        }
+        else if (lessThan.test(curr.data, key)) { // remove in right subtree
+            curr.right = remove_helper(curr.right, key);
+            return curr;
+        }
+        else {      // remove this node
+            if (curr.left == null) {
+                curr.updateHeightOfSelfAndAncestors();
+                --this.numNodes;
+                return curr.right;
+            }
+            else if (curr.right == null) {
+                curr.updateHeightOfSelfAndAncestors();
+                --this.numNodes;
+                return curr.left;
+            }
+            else {   // two children, replace with first of right subtree
+                Node<K> min = (Node<K>) curr.right.first();
+                curr.data = min.data;
+                curr.right = remove_helper(curr.right, min.data);
+
+                return curr;
+            }
+        }
     }
 
     /**
      * TODO * <p> * Returns a sorted list of all the keys in this tree.
      */
     public List<K> keys() {
-        return null;  // delete this line and add your code
+        List<K> sorted = new LinkedList<>();
+        if (this.root != null) {
+            Node<K> curr = (Node<K>) this.root.first();
+
+            while (curr != null) {
+                sorted.add(curr.data);
+                curr = (Node<K>) curr.next();
+            }
+        }
+        return sorted;
     }
 
     static private <K> String toStringPreorder(Node<K> p) {
@@ -215,3 +371,4 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
         else return n.height;
     }
 }
+

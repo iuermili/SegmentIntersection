@@ -316,6 +316,7 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      */
     public void remove(K key) {
         root = remove_helper(root, key);
+        if (root != null) root.updateHeight();
         numNodes--;
     }
 
@@ -325,23 +326,28 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
             return null;
         } else if (lessThan.test(key, curr.data)) { // remove in left subtree
             curr.left = remove_helper(curr.left, key);
+            curr.updateHeights();
             return curr;
         } else if (lessThan.test(curr.data, key)) { // remove in right subtree
             curr.right = remove_helper(curr.right, key);
+            curr.updateHeights();
             return curr;
         } else {      // remove this node
             if (curr.left == null) {
                 if (curr.right != null) {
                     curr.right.parent = curr.parent;
+                    curr.right.updateHeights();
                 }
                 return curr.right;
             } else if (curr.right == null) {
                 curr.left.parent = curr.parent;
+                curr.left.updateHeights();
                 return curr.left;
             } else {   // two children, replace with first of right subtree
                 Node<K> min = (Node<K>) curr.right.first();
                 curr.data = min.data;
                 curr.right = remove_helper(curr.right, min.data);
+                curr.updateHeights();
                 return curr;
             }
         }

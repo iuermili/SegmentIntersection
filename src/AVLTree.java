@@ -27,11 +27,11 @@ public class AVLTree<K> extends BinarySearchTree<K> {
             return root.isAVL();
     }
 
-    public Node left_rotate(Node n){
-        Node x = n.left; 
-        Node b = x.right; 
+    public Node right_rotate(Node n){
+        Node x = n.left;
+        Node b = x.right;
 
-        x.right = n; 
+        x.right = n;
         n.left = b;
 
         x.updateHeight();
@@ -40,7 +40,7 @@ public class AVLTree<K> extends BinarySearchTree<K> {
         return x; // return new root
     }
 
-    public Node right_rotate(Node n){
+    public Node left_rotate(Node n){
         Node y = n.right;
         Node b = y.left;
 

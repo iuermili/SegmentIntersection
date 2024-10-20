@@ -28,29 +28,29 @@ public class AVLTree<K> extends BinarySearchTree<K> {
     }
 
     public Node left_rotate(Node n){
-        Node l = n.left; // l is right child of n
-        Node lr = l.right; // lr is right child of l
+        Node x = n.left; 
+        Node b = x.right; 
 
-        l.right = n; //
-        n.left = lr;
+        x.right = n; 
+        n.left = b;
 
-        l.updateHeight();
+        x.updateHeight();
         n.updateHeight();
 
-        return l; // return new root
+        return x; // return new root
     }
 
     public Node right_rotate(Node n){
-        Node r = n.right;
-        Node rl = r.left;
+        Node y = n.right;
+        Node b = y.left;
 
-        r.left = n;
-        n.right = rl;
+        y.left = n;
+        n.right = b;
 
-        r.updateHeight();
+        y.updateHeight();
         n.updateHeight();
 
-        return r; // return new root
+        return y; // return new root
 
     }
 

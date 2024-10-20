@@ -15,7 +15,7 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * means that it can be the return value of a search on the tree.
      */
 
-    static class Node<K> implements Location<K> {
+    public static class Node<K> implements Location<K> {
 
         protected K data;
         protected Node<K> left, right;
@@ -191,8 +191,6 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
 
     protected Node<K> find(K key, Node<K> curr, Node<K> parent) {
         if (curr == null) {
-            if (parent != null) {
-            }
             return parent;
         }
         else if (lessThan.test(key, curr.data)) {
@@ -320,18 +318,14 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
         numNodes--;
     }
 
-    private Node remove_helper(Node<K> curr, K key) {
+    private Node<K> remove_helper(Node<K> curr, K key) {
         if (curr == null) {
             numNodes++; // if node not in tree, add 1 to cancel out subtraction
             return null;
         } else if (lessThan.test(key, curr.data)) { // remove in left subtree
             curr.left = remove_helper(curr.left, key);
-            curr.updateHeights();
-            return curr;
         } else if (lessThan.test(curr.data, key)) { // remove in right subtree
             curr.right = remove_helper(curr.right, key);
-            curr.updateHeights();
-            return curr;
         } else {      // remove this node
             if (curr.left == null) {
                 if (curr.right != null) {
@@ -351,6 +345,8 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
                 return curr;
             }
         }
+        curr.updateHeights();
+        return curr;
     }
 
 

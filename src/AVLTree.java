@@ -1,311 +1,98 @@
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
 
 /**
- * TODO: This is your first major task.
+ * TODO: This is your second major task.
  * <p>
- * This class implements a generic unbalanced binary search tree (BST).
+ * This class implements a height-balanced binary search tree,
+ * using the AVL algorithm. Beyond the constructor, only the insert()
+ * and remove() methods need to be implemented. All other methods are unchanged.
  */
 
-public class BinarySearchTree<K> implements OrderedSet<K> {
+public class AVLTree<K> extends BinarySearchTree<K> {
 
     /**
-     * A Node<K> is a Location (defined in OrderedSet.java), which
-     * means that it can be the return value of a search on the tree.
+     * Creates an empty AVL tree as a BST organized according to the
+     * lessThan predicate.
      */
+    public AVLTree(BiPredicate<K, K> lessThan) {
+        super(lessThan);
+    }
 
-    static class Node<K> implements Location<K> {
+    public boolean isAVL() {
+        if (root == null)
+            return true;
+        else
+            return root.isAVL();
+    }
 
-        protected K data;
-        protected Node<K> left, right;
-        protected Node<K> parent;
-        protected int height;
+    public Node right_rotate(Node n){
+        Node x = n.left;
+        Node b = x.right;
 
-        /**
-         * Constructs a leaf Node<K> with the given key.
-         */
-        public Node(K key) {
-            this(key, null, null);
-        }
+        x.right = n;
+        n.left = b;
 
-        /**
-         * TODO
-         * <p>
-         * Constructs a new Node<K> with the given values for fields.
-         */
-        public Node(K data, Node<K> left, Node<K> right) {
-            this.data = data;
-            this.left = left;
-            this.right = right;
-            if (this.left != null) {
-                this.left.parent = this;
-            }
-            if (this.right != null) {
-                this.right.parent = this;
-            }
-            this.updateHeight();
-            this.parent = null;
-        }
+        x.updateHeights();
+        n.updateHeights();
 
-        /*
-         * Provide the get() method required by the Location interface.
-         */
-        @Override
-        public K get() {
-            return data;
-        }
+        return x; // return new root
+    }
 
-        /**
-         * Return true iff this Node<K> is a leaf in the tree.
-         */
-        protected boolean isLeaf() {
-            return left == null && right == null;
-        }
+    public Node left_rotate(Node n){
+        Node y = n.right;
+        Node b = y.left;
 
-        /**
-         * TODO
-         * <p>
-         * Performs a local update on the height of this Node<K>. Assumes that the
-         * heights in the child Node<K>s are correct. Returns true iff the height
-         * actually changed. This function *must* run in O(1) time.
-         */
-        protected boolean updateHeight() {
-            int newHeight = 1 + Math.max(get_height(this.left),get_height(this.right));
-            if (newHeight != this.height) {
-                this.height = newHeight;
-                return true;
-            }
-            return false;
-        }
+        y.left = n;
+        n.right = b;
 
-        protected void updateHeights() {
-            Node<K> curr = this;
-            while (curr != null) {
-                if (!curr.updateHeight()) {
-                    break;
-                }
-                curr = curr.parent;
-            }
-        }
+        y.updateHeights();
+        n.updateHeights();
 
-
-
-        // Return the first node wrt. inorder in this subtree.
-        public Location<K> first() {
-            Node<K> curr = this;
-            while (curr.left != null) {
-                curr = curr.left;
-            }
-            return curr;
-        }
-        // Return the last node wrt. inorder in this subtree.
-        public Location<K> last() {
-            Node<K> curr = this;
-            while (curr.right != null) {
-                curr = curr.right;
-            }
-            return curr;
-        }
-        // Return the first ancestor that is next wrt. inorder
-        // or null if there is none.
-        public Location<K> nextAncestor() {
-            Node<K> curr = this;
-            while ((curr.parent != null) && (curr.parent.right == curr)) {
-                curr = curr.parent;
-            }
-            if ((curr.parent != null)) {
-                return curr.parent;
-            }
-            return null;
-        }
-        // Return the first ancestor that is previous wrt. inorder
-        // or null if there is none.
-        public Location<K> prevAncestor() {
-            Node<K> curr = this;
-            while ((curr.parent != null) && (curr.parent.left == curr)) {
-                curr = curr.parent;
-            }
-            if ((curr.parent != null)) {
-                return curr.parent;
-            }
-            return null;
-        }
-
-
-        /**
-         * TODO
-         * <p>
-         * Returns the location of the Node<K> containing the inorder predecessor
-         * of this Node<K>.
-         */
-        @Override
-        public Location<K> previous() {
-            if (this.left != null) {
-                return left.last();
-            }
-            return this.prevAncestor();
-        }
-
-        /**
-         * TODO
-         * <p>
-         * Returns the location of the Node<K> containing the inorder successor
-         * of this Node<K>.
-         */
-        @Override
-        public Location<K> next() {
-            if (this.right != null) {
-                return this.right.first();
-            }
-            return this.nextAncestor();
-        }
-
-
-        public boolean isAVL() {
-            int h1, h2;
-            h1 = get_height(left);
-            h2 = get_height(right);
-            return Math.abs(h2 - h1) < 2;
-        }
-
-        public String toString() {
-            return toStringPreorder(this);
-        }
-
-
+        return y; // return new root
 
     }
 
-    protected Node<K> root;
-    protected int numNodes;
-    protected BiPredicate<K, K> lessThan;
-
-    /**
-     * Constructs an empty BST, where the data is to be organized according to
-     * the lessThan relation.
-     */
-    public BinarySearchTree(BiPredicate<K, K> lessThan) {
-        this.lessThan = lessThan;
-    }
-
-    protected Node<K> find(K key, Node<K> curr, Node<K> parent) {
-        if (curr == null) {
-            if (parent != null) {
+    public Node fix(Node n) {
+        if (get_height(n.left) <= get_height(n.right)) {
+            if (get_height(n.right.left) <= get_height(n.right.right)) {
+                n = left_rotate(n);
+                return n;
             }
-            return parent;
-        }
-        else if (lessThan.test(key, curr.data)) {
-            return find(key, curr.left, curr);
-        }
-        else if (lessThan.test(curr.data, key)) {
-            return find(key, curr.right, curr);
+            else {
+                n = left_rotate(right_rotate(n));
+                return n;
+            }
         }
         else {
-            return curr;
+            if (get_height(n.left.left) < get_height(n.left.right)) {
+                n = right_rotate(left_rotate(n));
+                return n;
+            }
+            else {
+                n = right_rotate(n);
+                return n;
+            }
         }
     }
 
     /**
      * TODO
-     * <p>
-     * Looks up the key in this tree and, if found, returns the
-     * location containing the key.
+     * Inserts the given key into this AVL tree such that the ordering
+     * property for a BST and the balancing property for an AVL tree are
+     * maintained.
      */
-    public Node<K> search(K key) {
-        Node<K> n = find(key, this.root, null);
+    public Node insert(K key) {
+        // insert as BST
+        Node curr = super.insert(key);
 
-        if (n == null) {
-            return null;
-        } else if (n.data.equals(key)) {
-            return n;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * TODO
-     * <p>
-     * Returns the height of this tree. Runs in O(1) time!
-     */
-    public int height() {
-        return get_height(this.root);
-    }
-
-    /**
-     * TODO
-     * <p>
-     * Clears all the keys from this tree. Runs in O(1) time!
-     */
-    public void clear() {
-        this.root = null;
-    }
-
-    /**
-     * Returns the number of keys in this tree.
-     */
-    public int size() {
-        return numNodes;
-    }
-
-    /**
-     * TODO
-     * <p>
-     * Inserts the given key into this BST, as a leaf, where the path
-     * to the leaf is determined by the predicate provided to the tree
-     * at construction time. The parent pointer of the new Node<K> and
-     * the heights in all Node<K> along the path to the root are adjusted
-     * accordingly.
-     * <p>
-     * Note: we assume that all keys are unique. Thus, if the given
-     * key is already present in the tree, nothing happens.
-     * <p>
-     * Returns the location where the insert occurred (i.e., the leaf
-     * Node<K> containing the key), or null if the key is already present.
-     */
-    public Node<K> insert(K key) {
-        if (this.root == null) {
-            this.root = new Node<>(key);
-            this.numNodes++;
-            return this.root;
+        // check if is AVL
+        if (!curr.isAVL()){
+            fix(root);
         }
 
-        Node<K> found = find(key, root,null);
-        if (found != null && found.data.equals(key)) {
-            return null; // Key already exists
-        }
-        Node<K> newNode = new Node<>(key);
-        if (found == null) {
-            // This situation occurs when there are no nodes in the tree
-            return null; // No valid parent found
-        }
-        newNode.parent = found;
-        if (lessThan.test(key, found.data)) {
-            found.left = newNode;
-        } else {
-            found.right = newNode;
-        }
-        found.updateHeights();
-        this.numNodes++;
-        return newNode;
-    }
-
-
-    /**
-     * Returns a textual representation of this BST.
-     */
-    public String toString() {
-        return toStringPreorder(root);
-    }
-
-    /**
-     * Returns true iff the given key is in this BST.
-     */
-    public boolean contains(K key) {
-
-        Node<K> p = search(key);
-        return p != null;
+        return curr;
     }
 
     /**
@@ -315,79 +102,13 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
      * nothing happens.
      */
     public void remove(K key) {
-        root = remove_helper(root, key);
-        if (root != null) root.updateHeight();
-        numNodes--;
-    }
+        // remove as BST
+        super.remove(key);
 
-    private Node remove_helper(Node<K> curr, K key) {
-        if (curr == null) {
-            numNodes++; // if node not in tree, add 1 to cancel out subtraction
-            return null;
-        } else if (lessThan.test(key, curr.data)) { // remove in left subtree
-            curr.left = remove_helper(curr.left, key);
-            curr.updateHeights();
-            return curr;
-        } else if (lessThan.test(curr.data, key)) { // remove in right subtree
-            curr.right = remove_helper(curr.right, key);
-            curr.updateHeights();
-            return curr;
-        } else {      // remove this node
-            if (curr.left == null) {
-                if (curr.right != null) {
-                    curr.right.parent = curr.parent;
-                    curr.right.updateHeights();
-                }
-                return curr.right;
-            } else if (curr.right == null) {
-                curr.left.parent = curr.parent;
-                curr.left.updateHeights();
-                return curr.left;
-            } else {   // two children, replace with first of right subtree
-                Node<K> min = (Node<K>) curr.right.first();
-                curr.data = min.data;
-                curr.right = remove_helper(curr.right, min.data);
-                curr.updateHeights();
-                return curr;
-            }
+        // check if is AVL
+        if (!this.isAVL()){
+            fix(root);
         }
     }
 
-
-    /**
-     * TODO * <p> * Returns a sorted list of all the keys in this tree.
-     */
-    public List<K> keys() {
-        List<K> sortedKeys = new LinkedList<>();
-        inOrder(this.root, sortedKeys);  // delete this line and add your code
-        return sortedKeys;
-    }
-
-    private void inOrder(Node<K> curr, List<K> keys){
-        if (curr == null) {
-            return;
-        }
-        inOrder(curr.left, keys);
-        keys.add(curr.get());
-        inOrder(curr.right, keys);
-
-    }
-
-    static private <K> String toStringPreorder(Node<K> p) {
-        if (p == null) return ".";
-        String left = toStringPreorder(p.left);
-        if (left.length() != 0) left = " " + left;
-        String right = toStringPreorder(p.right);
-        if (right.length() != 0) right = " " + right;
-        String data = p.data.toString();
-        return "(" + data + "[" + p.height + "]" + left + right + ")";
-    }
-
-    /**
-     * The get_height method returns the height of the Node<K> n, which may be null.
-     */
-    static protected <K> int get_height(Node<K> n) {
-        if (n == null) return -1;
-        else return n.height;
-    }
 }

@@ -317,13 +317,36 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
             return curr;
         }
         else {      // remove this node
-            if (curr.left == null) {
-                curr.updateHeightOfSelfAndAncestors();
+            if (curr.left == null && curr.right == null) {
+                if (curr.parent == this.root.parent) {
+                    --this.numNodes;
+                    return null;
+                }
+
+                if (curr.parent.right == curr) {
+                    curr.parent.right = null;
+                }
+                else {
+                    curr.parent.left = null;
+                }
+                curr.parent.updateHeightOfSelfAndAncestors();
+
+                --this.numNodes;
+                return null;
+            }
+            else if (curr.left == null) {
+                // we know that curr.right is not null
+                curr.right.parent = curr.parent;
+                curr.right.updateHeightOfSelfAndAncestors();
+
                 --this.numNodes;
                 return curr.right;
             }
             else if (curr.right == null) {
-                curr.updateHeightOfSelfAndAncestors();
+                // we know that curr.left is not null
+                curr.left.parent = curr.parent;
+                curr.left.updateHeightOfSelfAndAncestors();
+
                 --this.numNodes;
                 return curr.left;
             }
@@ -371,4 +394,3 @@ public class BinarySearchTree<K> implements OrderedSet<K> {
         else return n.height;
     }
 }
-

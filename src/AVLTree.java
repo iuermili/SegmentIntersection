@@ -49,10 +49,11 @@ public class AVLTree<K> extends BinarySearchTree<K> {
                 x.parent.right = x;
             }
         } else {
-            root = x;
+            root = x; // if parent null it is root
         }
 
-        n.updateHeights();
+        n.updateHeight(); // update new heights
+        x.updateHeight();
 
         return x; // return new root
     }
@@ -83,40 +84,33 @@ public class AVLTree<K> extends BinarySearchTree<K> {
             root = y;
         }
 
-        n.updateHeights();
+        n.updateHeight(); // update heights of changed nodes
+        y.updateHeight();
 
         return y; // return new root
-
     }
 
     public void fix(Node<K> n) {
         if (n == null) {
             return;
         }
+        n.updateHeight(); // update height before AVL check as we climb tree
 
         if (!n.isAVL()) {
-            if (get_height(n.left) <= get_height(n.right)) {
-                if (get_height(n.right.left) <= get_height(n.right.right)) {
-                    n = left_rotate(n);
+            if (get_height(n.left) <= get_height(n.right)) { // right is heavy
+                if (get_height(n.right.left) > get_height(n.right.right)) { // right.left is heavy
+                    n.right = right_rotate(n.right); // RL
                 }
-                else {
-                    n.right = right_rotate(n.right);
-                    n = left_rotate(n);
-                }
+                n = left_rotate(n); // LL
             }
-            else {
-                if (get_height(n.left.left) < get_height(n.left.right)) {
-                    n.left = left_rotate(n.left);
-                    n = right_rotate(n);
+            else { // left is heavy
+                if (get_height(n.left.left) < get_height(n.left.right)) { // left.right is heavy
+                    n.left = left_rotate(n.left); // LR
                 }
-                else {
-                    n = right_rotate(n);
-                }
+                n = right_rotate(n); // RR
             }
         }
-
-        fix(n.parent);
-
+        fix(n.parent); // move up
     }
 
     /**
@@ -129,11 +123,9 @@ public class AVLTree<K> extends BinarySearchTree<K> {
         // insert as BST
         Node<K> curr = super.insert(key);
 
-        // check if is AVL
         if (curr != null) {
             fix(curr);
         }
-
         return curr;
     }
 
@@ -154,8 +146,7 @@ public class AVLTree<K> extends BinarySearchTree<K> {
         } else {
             start = curr.parent; // parent of removed
         }
-        super.remove(key);
-
+        super.remove(key); // BST remove
 
         if (start != null) {
             fix(start);

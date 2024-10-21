@@ -18,6 +18,8 @@ public class StudentTest {
         dupsSmallBST();
         largeRandomBSTTest();
         largeRandomAVLTest();
+        testLeftRightRotation();
+        testRightLeftRotation();
     }
 
     @Test
@@ -150,10 +152,95 @@ public class StudentTest {
 
     }
 
+    public void testLeftRightRotation() {
+        AVLTree<Integer> avl = new AVLTree<>((Integer x, Integer y) -> x < y);
+        // Pre-rotation
+        //      5
+        //     / \
+        //    2   7
+        //   / \
+        //  1   4
+        avl.insert(5);
+        avl.insert(2);
+        avl.insert(7);
+        avl.insert(1);
+        avl.insert(4);
+        avl.insert(3);
 
+        // This last insert should trigger a Left-Right rotation
+        //      5
+        //     / \
+        //    2   7
+        //   / \
+        //  1   4
+        //     /
+        //    3
+        avl.insert(3);
 
+        // Post-rotation
+        //      4
+        //     / \
+        //    2   5
+        //   / \   \
+        //  1   3   7
 
+        // Verifying the structure
+        assertEquals(4, avl.root.data);
+        assertEquals(2, avl.root.left.data);
+        assertEquals(5, avl.root.right.data);
+        assertEquals(1, avl.root.left.left.data);
+        assertEquals(3, avl.root.left.right.data);
+        assertEquals(7, avl.root.right.right.data);
 
+        // Verifying the AVL properties
+        assertTrue(avl.isAVL());
+        assertEquals(2, avl.height());
+    }
+
+    @Test
+    public void testRightLeftRotation() {
+        AVLTree<Integer> avl = new AVLTree<>((Integer x, Integer y) -> x < y);
+        // Pre-rotation
+        //      5
+        //     / \
+        //    2   7
+        //       / \
+        //      6   8
+        avl.insert(5);
+        avl.insert(2);
+        avl.insert(7);
+        avl.insert(6);
+        avl.insert(8);
+
+        // This last insert should trigger a Right-Left rotation
+        //      5
+        //     / \
+        //    2   7
+        //       / \
+        //      6   8
+        //           \
+        //            9
+        avl.insert(9);
+
+        // Post-rotation
+        //        7
+        //       / \
+        //      5   8
+        //     / \   \
+        //    2   6   9
+
+        // Verifying the structure
+        assertEquals(7, avl.root.data);
+        assertEquals(5, avl.root.left.data);
+        assertEquals(8, avl.root.right.data);
+        assertEquals(2, avl.root.left.left.data);
+        assertEquals(6, avl.root.left.right.data);
+        assertEquals(9, avl.root.right.right.data);
+
+        // Verifying the AVL properties
+        assertTrue(avl.isAVL());
+        assertEquals(2, avl.height());
+    }
 
     // Check that the tree is an AVL tree.
 

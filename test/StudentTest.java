@@ -15,7 +15,9 @@ public class StudentTest {
     @Test
     public void test() {
         insertSmallBST();
-        // your tests go here
+        dupsSmallBST();
+        largeRandomBSTTest();
+        largeRandomAVLTest();
     }
 
     @Test
@@ -106,7 +108,6 @@ public class StudentTest {
 
         BinarySearchTree.Node<Integer> new_curr = bst.root;
         assertTrue(height_check(new_curr));
-        System.out.print(bst.toString());
     }
 
 
@@ -125,61 +126,56 @@ public class StudentTest {
         else return n.height;
     }
 
+    @Test
+    public void largeRandomAVLTest() {
+        AVLTree<Integer> avl = new AVLTree<>((Integer x, Integer y) -> x < y);
+        Random random = new Random();
+        int size = 10000;
+        int maxValue = 10000;
+
+        for (int i = 0; i < size; i++) {
+            int key = random.nextInt(maxValue);
+            avl.insert(key);
+        }
+
+        validate_AVL_property(avl);
+
+        for (int i = 0; i < 10000; i++) {
+            int key = random.nextInt(maxValue);
+            avl.remove(key);
+            assertFalse(avl.contains(key));
+        }
+
+        validate_AVL_property(avl);
+
+    }
 
 
 
-    /*
-     * Helper Methods to Validate Properties of 
-     * BST and AVL Tree.
-     */
-    
-    // Check that the tree is ordered
-//    public static void
-//    validate_BST_property(OrderedSet<Integer> tree) {
-//        validate_BST_property((BinarySearchTree<Integer>)tree.root());
-//    }
 
-    // Check that the subtree satisfies the BST Property.
-    // Returns the min and max keys in the subtree of n.
-//    public static Pair<Integer,Integer>
-//    validate_BST_property(Location<Integer> n) {
-//        if (n == null) {
-//            return null;
-//        } else {
-//            Pair<Integer,Integer> left_range =
-//                validate_BST_property(n.left_child());
-//            Pair<Integer,Integer> right_range =
-//                validate_BST_property(n.right_child());
-//            if (left_range == null) {
-//                left_range = new Pair<>(n.get(), n.get());
-//            } else {
-//                assertTrue(left_range.getValue() < n.get());
-//            }
-//            if (right_range == null) {
-//                right_range = new Pair<>(n.get(), n.get());
-//            } else {
-//                assertTrue(n.get() < right_range.getKey());
-//            }
-//            return combine(left_range, right_range);
-//        }
-//    }
-//
-//
-//    // Check that the tree is an AVL tree.
-//    public static <K> void validate_AVL_property(OrderedSet<K> tree) {
-//        validate_AVL_property(tree.root());
-//    }
-//    // Checks that the subtree rooted at location n is and AVL tree
-//    // and returns the height of this subtree.
-//    public static <K> int validate_AVL_property(Location<K> n) {
-//        if (n == null) {
-//            return -1;
-//        } else {
-//            int h1, h2;
-//            h1 = validate_AVL_property(n.left_child());
-//            h2 = validate_AVL_property(n.right_child());
-//            assertTrue(Math.abs(h2 - h1) < 2);
-//            return 1 + max(h1, h2);
-//        }
-//    }
+
+
+    // Check that the tree is an AVL tree.
+
+    public static void validate_AVL_property(AVLTree<Integer> tree) {
+        validate_AVL_property(tree.root);
+    }
+
+    // Checks that the subtree rooted at location n is an AVL tree
+// and returns the height of this subtree.
+    public static int validate_AVL_property(BinarySearchTree.Node<Integer> n) {
+        if (n == null) {
+            return -1; // Height of an empty subtree
+        }
+
+        // Recursively validate the left and right subtrees
+        int leftHeight = validate_AVL_property(n.left);
+        int rightHeight = validate_AVL_property(n.right);
+
+
+        // Check the AVL property
+        assertTrue(Math.abs(leftHeight - rightHeight) < 2);
+
+        return 1 + Math.max(leftHeight, rightHeight); // Return the height of this node
+    }
 }
